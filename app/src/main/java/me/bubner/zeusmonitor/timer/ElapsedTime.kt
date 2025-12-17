@@ -8,7 +8,8 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Tracks the [elapsedTime] since invoking [run]. Does not reset on function completion.
+ * Tracks the [elapsedTime] since invoking [run].
+ * Does not reset automatically on function completion.
  *
  * @author Lucas Bubner, 2025
  */
@@ -19,6 +20,10 @@ class ElapsedTime {
         get() = elapsedMs != 0L
 
     private var elapsedMs by mutableLongStateOf(0L)
+
+    fun reset() {
+        elapsedMs = 0
+    }
 
     suspend fun run() {
         val start = SystemClock.elapsedRealtime()

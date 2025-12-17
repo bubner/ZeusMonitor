@@ -13,20 +13,20 @@ import me.bubner.zeusmonitor.util.Math.round
 import kotlin.time.DurationUnit
 
 @Composable
-fun LiveTimer(active: Boolean, timer: ElapsedTime) {
+fun Result(active: Boolean, timer: ElapsedTime) {
     val fontSize by animateDpAsState(
-        targetValue = if (active) 48.dp else 24.dp,
-        label = "timer size"
+        targetValue = if (active) 24.dp else 48.dp,
+        label = "result size"
     )
 
     Text(
-        text = "${timer.elapsedTime.toDouble(DurationUnit.SECONDS) round 2} s",
+        "${timer.elapsedTime.toDouble(DurationUnit.SECONDS) / 3 round 2} km",
         style = MaterialTheme.typography.displayLarge.copy(fontSize = fontSize.value.sp)
     )
 }
 
 @Preview(showBackground = true)
 @Composable
-fun LiveTimerPreview() {
-    LiveTimer(false, ElapsedTime())
+fun ResultPreview() {
+    Result(false, ElapsedTime())
 }
