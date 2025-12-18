@@ -34,8 +34,14 @@ fun Main() {
     val navController = rememberNavController()
     // We prefer to use our own colours rather than the user's (yellow/blue)
     ZeusMonitorTheme(dynamicColor = false) {
-        Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = { Navbar(navController) }) { innerPadding ->
-            NavHost(navController, startDestination = Tab.Monitor.name, modifier = Modifier.padding(innerPadding)) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = { Navbar(navController) }) { innerPadding ->
+            NavHost(
+                navController,
+                startDestination = Tab.Monitor.name,
+                modifier = Modifier.padding(innerPadding)
+            ) {
                 Tab.entries.forEach { tab ->
                     composable(tab.name) {
                         when (tab) {

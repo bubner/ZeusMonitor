@@ -3,6 +3,7 @@ package me.bubner.zeusmonitor.timer
 import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -26,10 +27,19 @@ class ElapsedTime {
     }
 
     suspend fun run() {
-        val start = SystemClock.elapsedRealtime()
+        var last = SystemClock.elapsedRealtime()
         while (true) {
-            elapsedMs = SystemClock.elapsedRealtime() - start
+            val now = SystemClock.elapsedRealtime()
+            elapsedMs += now - last
+            last = now
             delay(50)
         }
+    }
+
+    companion object {
+        val saver = Saver<ElapsedTime, Long>(
+            save = { it.elapsedMs },
+            restore = { ElapsedTime().apply { elapsedMs = it } }
+        )
     }
 }

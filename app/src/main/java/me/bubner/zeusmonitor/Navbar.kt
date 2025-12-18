@@ -28,7 +28,13 @@ fun Navbar(navController: NavController) {
             NavigationBarItem(
                 selected = selectedDestination == index,
                 onClick = {
-                    navController.navigate(route = tab.name)
+                    navController.navigate(route = tab.name) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                     selectedDestination = index
                 },
                 icon = {

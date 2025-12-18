@@ -40,7 +40,11 @@ fun ControlButton(active: Boolean, onClick: () -> Unit) {
     ) {
         if (active) {
             Text("Heard Thunder")
-            Icon(imageVector = Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Heard Thunder", Modifier.padding(4.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                contentDescription = "Heard Thunder",
+                Modifier.padding(4.dp)
+            )
         } else {
             Text("Saw Flash")
             Icon(imageVector = Icons.Default.Bolt, contentDescription = "Saw Flash")

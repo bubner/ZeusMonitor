@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,8 +33,8 @@ import me.bubner.zeusmonitor.util.CenteredColumn
 @Preview(showBackground = true)
 @Composable
 fun MainScreen() {
-    val timer = remember { ElapsedTime() }
-    var active by remember { mutableStateOf(false) }
+    val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
+    var active by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(active) {
         if (active) timer.run()
@@ -45,7 +45,6 @@ fun MainScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     ) {
-//        MaplibreMap()
         CenteredColumn(Modifier.padding(24.dp)) {
             CenteredColumn(Modifier.padding(12.dp)) {
                 CenteredColumn {

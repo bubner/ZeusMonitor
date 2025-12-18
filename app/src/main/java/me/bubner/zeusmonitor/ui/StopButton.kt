@@ -31,5 +31,5 @@ fun StopButton(onClick: () -> Unit) {
 @Preview
 @Composable
 fun StopButtonPreview() {
-    StopButton() {}
+    StopButton {}
 }
