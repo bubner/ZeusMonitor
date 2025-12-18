@@ -1,6 +1,7 @@
 package me.bubner.zeusmonitor
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -16,7 +17,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 
 enum class Tab(val icon: ImageVector) {
-    Monitor(Icons.Default.LocationOn)
+    Monitor(Icons.Default.LocationOn),
+    History(Icons.Default.History)
 }
 
 @Composable
