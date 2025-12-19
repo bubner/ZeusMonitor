@@ -25,7 +25,7 @@ fun LiveTimer(active: Boolean, timer: ElapsedTime) {
     )
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun LiveTimerPreview() {
     LiveTimer(false, ElapsedTime())

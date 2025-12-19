@@ -25,7 +25,7 @@ fun Result(active: Boolean, timer: ElapsedTime) {
     )
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun ResultPreview() {
     Result(false, ElapsedTime())

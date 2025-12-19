@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.tooling.preview.Preview
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun CalculatingText() {
     val transition = rememberInfiniteTransition(label = "opacity")

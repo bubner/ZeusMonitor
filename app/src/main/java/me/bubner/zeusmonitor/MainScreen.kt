@@ -30,7 +30,7 @@ import me.bubner.zeusmonitor.ui.Result
 import me.bubner.zeusmonitor.ui.StopButton
 import me.bubner.zeusmonitor.util.CenteredColumn
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun MainScreen() {
     val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
@@ -73,7 +73,11 @@ fun MainScreen() {
                         timer.reset()
                     }
                 }
-                ControlButton(active) { active = !active }
+                ControlButton(active) {
+                    active = !active
+                    if (active)
+                        timer.reset()
+                }
             }
         }
     }
