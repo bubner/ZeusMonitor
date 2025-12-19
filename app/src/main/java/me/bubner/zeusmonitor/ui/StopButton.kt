@@ -13,8 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+@Preview
 @Composable
-fun StopButton(onClick: () -> Unit) {
+fun StopButton(onClick: () -> Unit = {}) {
     Button(
         onClick,
         colors = ButtonDefaults.buttonColors(
@@ -26,10 +27,4 @@ fun StopButton(onClick: () -> Unit) {
     ) {
         Icon(imageVector = Icons.Default.Stop, contentDescription = "Stop")
     }
-}
-
-@Preview
-@Composable
-fun StopButtonPreview() {
-    StopButton {}
 }

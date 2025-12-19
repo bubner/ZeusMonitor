@@ -12,8 +12,9 @@ import me.bubner.zeusmonitor.timer.ElapsedTime
 import me.bubner.zeusmonitor.util.Math.round
 import kotlin.time.DurationUnit
 
+@Preview
 @Composable
-fun Result(active: Boolean, timer: ElapsedTime) {
+fun Result(active: Boolean = false, timer: ElapsedTime = ElapsedTime()) {
     val fontSize by animateDpAsState(
         targetValue = if (active) 24.dp else 48.dp,
         label = "result size"
@@ -23,10 +24,4 @@ fun Result(active: Boolean, timer: ElapsedTime) {
         "${timer.elapsedTime.toDouble(DurationUnit.SECONDS) / 3 round 2} km",
         style = MaterialTheme.typography.displayLarge.copy(fontSize = fontSize.value.sp)
     )
-}
-
-@Preview
-@Composable
-fun ResultPreview() {
-    Result(false, ElapsedTime())
 }

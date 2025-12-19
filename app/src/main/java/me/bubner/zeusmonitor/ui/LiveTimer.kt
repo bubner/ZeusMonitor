@@ -12,8 +12,9 @@ import me.bubner.zeusmonitor.timer.ElapsedTime
 import me.bubner.zeusmonitor.util.Math.round
 import kotlin.time.DurationUnit
 
+@Preview
 @Composable
-fun LiveTimer(active: Boolean, timer: ElapsedTime) {
+fun LiveTimer(active: Boolean = false, timer: ElapsedTime = ElapsedTime()) {
     val fontSize by animateDpAsState(
         targetValue = if (active) 48.dp else 24.dp,
         label = "timer size"
@@ -23,10 +24,4 @@ fun LiveTimer(active: Boolean, timer: ElapsedTime) {
         text = "${timer.elapsedTime.toDouble(DurationUnit.SECONDS) round 2} s",
         style = MaterialTheme.typography.displayLarge.copy(fontSize = fontSize.value.sp)
     )
-}
-
-@Preview
-@Composable
-fun LiveTimerPreview() {
-    LiveTimer(false, ElapsedTime())
 }

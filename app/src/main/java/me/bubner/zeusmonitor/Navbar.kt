@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
@@ -25,7 +26,11 @@ enum class Tab(val icon: ImageVector) {
 fun Navbar(navController: NavController) {
     var selectedDestination by rememberSaveable { mutableIntStateOf(0) }
 
-    NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+    NavigationBar(
+        windowInsets = NavigationBarDefaults.windowInsets,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
         Tab.entries.forEachIndexed { index, tab ->
             NavigationBarItem(
                 selected = selectedDestination == index,

@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -67,4 +68,5 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.ramani.maplibre)
     implementation(libs.androidx.datastore)
+    implementation(libs.kotlinx.serialization.json)
 }

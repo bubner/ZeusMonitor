@@ -18,8 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+@Preview
 @Composable
-fun ControlButton(active: Boolean, onClick: () -> Unit) {
+fun ControlButton(active: Boolean = false, onClick: () -> Unit = {}) {
     val buttonColour by animateColorAsState(
         targetValue = if (active)
             MaterialTheme.colorScheme.secondary
@@ -50,10 +51,4 @@ fun ControlButton(active: Boolean, onClick: () -> Unit) {
             Icon(imageVector = Icons.Default.Bolt, contentDescription = "Saw Flash")
         }
     }
-}
-
-@Preview
-@Composable
-fun ControlButtonPreview() {
-    ControlButton(false) {}
 }

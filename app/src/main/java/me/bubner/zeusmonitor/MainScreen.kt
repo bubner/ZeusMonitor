@@ -23,16 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.bubner.zeusmonitor.timer.ElapsedTime
+import me.bubner.zeusmonitor.timer.HistoryItem
 import me.bubner.zeusmonitor.ui.CalculatingText
 import me.bubner.zeusmonitor.ui.ControlButton
 import me.bubner.zeusmonitor.ui.LiveTimer
 import me.bubner.zeusmonitor.ui.Result
 import me.bubner.zeusmonitor.ui.StopButton
 import me.bubner.zeusmonitor.util.CenteredColumn
+import kotlin.time.DurationUnit
 
 @Preview
 @Composable
-fun MainScreen() {
+fun MainScreen(onNewItem: (HistoryItem) -> Unit = {}) {
     val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
     var active by rememberSaveable { mutableStateOf(false) }
 
@@ -75,8 +77,16 @@ fun MainScreen() {
                 }
                 ControlButton(active) {
                     active = !active
-                    if (active)
+                    if (active) {
                         timer.reset()
+                    } else if (timer.isValid) {
+                        onNewItem(
+                            HistoryItem(
+                                timer.elapsedTime.toDouble(DurationUnit.MILLISECONDS),
+                                0.0 // TODO
+                            )
+                        )
+                    }
                 }
             }
         }
