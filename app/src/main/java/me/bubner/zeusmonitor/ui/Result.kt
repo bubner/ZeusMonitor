@@ -21,6 +21,7 @@ fun Result(active: Boolean = false, timer: ElapsedTime = ElapsedTime()) {
     )
 
     Text(
+        // TODO: use ViewModel
         "${timer.elapsedTime.toDouble(DurationUnit.SECONDS) / 3 round 2} km",
         style = MaterialTheme.typography.displayLarge.copy(fontSize = fontSize.value.sp)
     )

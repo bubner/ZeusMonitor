@@ -69,4 +69,5 @@ dependencies {
     implementation(libs.ramani.maplibre)
     implementation(libs.androidx.datastore)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 }

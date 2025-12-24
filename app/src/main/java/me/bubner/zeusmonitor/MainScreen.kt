@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -23,23 +24,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.bubner.zeusmonitor.timer.ElapsedTime
-import me.bubner.zeusmonitor.timer.HistoryItem
 import me.bubner.zeusmonitor.ui.CalculatingText
 import me.bubner.zeusmonitor.ui.ControlButton
 import me.bubner.zeusmonitor.ui.LiveTimer
 import me.bubner.zeusmonitor.ui.Result
 import me.bubner.zeusmonitor.ui.StopButton
 import me.bubner.zeusmonitor.util.CenteredColumn
-import kotlin.time.DurationUnit
+import kotlin.time.Duration
 
 @Preview
 @Composable
-fun MainScreen(onNewItem: (HistoryItem) -> Unit = {}) {
+fun MainScreen(onNewItem: (Duration) -> Unit = {}) {
     val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
-    var active by rememberSaveable { mutableStateOf(false) }
+    var isActive by rememberSaveable { mutableStateOf(false) }
+    var needReset by remember { mutableStateOf(false) }
 
-    LaunchedEffect(active) {
-        if (active) timer.run()
+    LaunchedEffect(isActive) {
+        if (isActive) timer.run()
+        if (needReset) {
+            timer.reset()
+            @Suppress("AssignedValueIsNeverRead")
+            needReset = false
+        } else if (!isActive && timer.isValid) {
+            onNewItem(timer.elapsedTime)
+        }
     }
 
     Column(
@@ -51,42 +59,34 @@ fun MainScreen(onNewItem: (HistoryItem) -> Unit = {}) {
             CenteredColumn(Modifier.padding(12.dp)) {
                 CenteredColumn {
                     AnimatedVisibility(
-                        visible = active,
+                        visible = isActive,
                         enter = expandVertically() + fadeIn(),
                         exit = shrinkVertically() + fadeOut()
                     ) {
                         CalculatingText()
                     }
-                    Result(active, timer)
+                    Result(isActive, timer)
                 }
-                LiveTimer(active, timer)
+                LiveTimer(isActive, timer)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 AnimatedVisibility(
-                    visible = active,
+                    visible = isActive,
                     enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
                     exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
                 ) {
                     StopButton {
-                        active = false
-                        timer.reset()
+                        isActive = false
+                        needReset = true
                     }
                 }
-                ControlButton(active) {
-                    active = !active
-                    if (active) {
+                ControlButton(isActive) {
+                    isActive = !isActive
+                    if (isActive)
                         timer.reset()
-                    } else if (timer.isValid) {
-                        onNewItem(
-                            HistoryItem(
-                                timer.elapsedTime.toDouble(DurationUnit.MILLISECONDS),
-                                0.0 // TODO
-                            )
-                        )
-                    }
                 }
             }
         }

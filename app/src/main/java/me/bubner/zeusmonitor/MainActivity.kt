@@ -12,17 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.launch
-import me.bubner.zeusmonitor.timer.HistoryDataStore
 import me.bubner.zeusmonitor.ui.DeleteAllHistoryButton
 import me.bubner.zeusmonitor.ui.theme.ZeusMonitorTheme
 
@@ -41,14 +37,10 @@ class MainActivity : ComponentActivity() {
 
 @Preview
 @Composable
-fun Main() {
+fun Main(viewModel: ZeusViewModel = viewModel()) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val historyStore = remember(context) { HistoryDataStore(context) }
 
     // We prefer to use our own colours rather than the user's (yellow/blue)
     ZeusMonitorTheme(dynamicColor = false) {
@@ -63,7 +55,7 @@ fun Main() {
                     exit = fadeOut()
                 ) {
                     DeleteAllHistoryButton {
-                        coroutineScope.launch { historyStore.deleteAll() }
+                        viewModel.deleteAllHistoryItems()
                     }
                 }
             }
@@ -76,13 +68,11 @@ fun Main() {
                 Tab.entries.forEach { tab ->
                     composable(tab.name) {
                         when (tab) {
-                            Tab.Monitor -> MainScreen(onNewItem = {
-                                coroutineScope.launch {
-                                    historyStore.pushHistoryItem(it)
-                                }
-                            })
-
-                            Tab.History -> HistoryScreen(historyStore.historyFlow())
+                            Tab.Monitor -> MainScreen(viewModel::onNewItem)
+                            Tab.History -> HistoryScreen(
+                                history = viewModel.historyFlow(),
+                                onDelete = viewModel::deleteHistoryItem
+                            )
                         }
                     }
                 }

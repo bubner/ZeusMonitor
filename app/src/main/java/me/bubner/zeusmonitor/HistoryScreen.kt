@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import me.bubner.zeusmonitor.timer.HistoryItem
 
 @Composable
-fun HistoryScreen(history: Flow<List<HistoryItem>>) { // TODO: individual delete reqs
+fun HistoryScreen(history: Flow<List<HistoryItem>>, onDelete: (HistoryItem) -> Unit) {
     val historyItems by history.collectAsStateWithLifecycle(emptyList())
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -33,6 +33,7 @@ fun HistoryScreen(history: Flow<List<HistoryItem>>) { // TODO: individual delete
             key = { it.unixTimeMillis }
         ) { item -> Entry(item) }
     }
+    // TODO: onDelete
 }
 
 @Composable
