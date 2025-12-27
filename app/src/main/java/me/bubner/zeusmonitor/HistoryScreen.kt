@@ -1,5 +1,6 @@
 package me.bubner.zeusmonitor
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,8 +32,12 @@ import me.bubner.zeusmonitor.timer.HistoryItem
 import me.bubner.zeusmonitor.util.Math.round
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
-val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
+// Constant locale is fine, this app shouldn't expect that sort of usage and restarts will resolve
+// this synchronisation. Preferred over regenerating `sdf` each render cycle.
+@SuppressLint("ConstantLocale")
+val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.getDefault())
 
 @Composable
 fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) -> Unit) {
@@ -50,7 +55,7 @@ fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) ->
         items(
             items = historyItems.reversed(),
             key = { it.unixTimeMillis }
-        ) { item -> Entry(item, onClick = {  }) } // TODO: display screen with map? and delete button
+        ) { item -> Entry(item, onClick = { }) } // TODO: display screen with map? and delete button
     }
 }
 
@@ -71,8 +76,15 @@ fun Entry(it: HistoryItem = HistoryItem(0.0, 0.0), onClick: () -> Unit = {}) {
             verticalArrangement = Arrangement.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "${it.distanceKm round 2} km", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(end = 12.dp))
-                Text(text = "${it.elapsedTimeSec round 2} sec", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "${it.distanceKm round 2} km",
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = "${it.elapsedTimeSec round 2} sec",
+                    style = MaterialTheme.typography.bodyLarge
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowRight,
