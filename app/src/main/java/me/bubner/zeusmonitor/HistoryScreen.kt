@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -150,7 +149,7 @@ fun ItemDialog(
                 Text(
                     sdf.format(it.unixTimeMillis),
                     modifier = Modifier.padding(12.dp),
-                    color = Color.DarkGray
+                    style = MaterialTheme.typography.bodySmall
                 )
                 Text("Lightning estimated to be")
                 Text(
@@ -188,10 +187,10 @@ fun ItemDialog(
                         onClick = { onDismissRequest() },
                         modifier = Modifier.padding(8.dp),
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            contentColor = MaterialTheme.colorScheme.secondary
                         )
                     ) {
-                        Text("Dismiss", color = MaterialTheme.colorScheme.onPrimary)
+                        Text("Dismiss", color = MaterialTheme.colorScheme.secondary)
                     }
                 }
             }
