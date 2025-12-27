@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,22 +31,55 @@ import me.bubner.zeusmonitor.ui.StopButton
 import me.bubner.zeusmonitor.util.CenteredColumn
 import kotlin.time.Duration
 
-@Preview
-@Composable
-fun MainScreen(onNewItem: (Duration) -> Unit = {}) {
-    val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
-    var isActive by rememberSaveable { mutableStateOf(false) }
-    var needReset by remember { mutableStateOf(false) }
+enum class State {
+    STOPPED,
+    STARTING,
+    RUNNING,
+    FINISHING,
+    FINISHED
+}
 
-    LaunchedEffect(isActive) {
-        if (isActive) timer.run()
-        if (needReset) {
-            timer.reset()
-            @Suppress("AssignedValueIsNeverRead")
-            needReset = false
-        } else if (!isActive && timer.isValid) {
-            onNewItem(timer.elapsedTime)
+@Preview(showBackground = true, backgroundColor = 0xffffff)
+@Composable
+fun MainScreen(onNewItem: (Duration) -> Unit = {}, fetchResult: (Duration) -> Double = { 0.0 }) {
+    val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
+    var state by rememberSaveable { mutableStateOf(State.STOPPED) }
+
+    LaunchedEffect(state) {
+        when (state) {
+            State.STOPPED -> {
+                // Reset but don't record
+                timer.reset()
+            }
+
+            State.STARTING -> {
+                // Reset on start
+                timer.reset()
+                state = State.RUNNING
+            }
+
+            State.RUNNING -> {
+                timer.run()
+            }
+
+            State.FINISHING -> {
+                onNewItem(timer.elapsedTime)
+                state = State.FINISHED
+            }
+
+            State.FINISHED -> {
+                // no-op, we only want to record the time once while preserving the result
+                // and this effect can restart
+            }
         }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // TODO: map and speed of sound display/editor system
     }
 
     Column(
@@ -59,34 +91,34 @@ fun MainScreen(onNewItem: (Duration) -> Unit = {}) {
             CenteredColumn(Modifier.padding(12.dp)) {
                 CenteredColumn {
                     AnimatedVisibility(
-                        visible = isActive,
+                        visible = state == State.RUNNING,
                         enter = expandVertically() + fadeIn(),
                         exit = shrinkVertically() + fadeOut()
                     ) {
                         CalculatingText()
                     }
-                    Result(isActive, timer)
+                    Result(state == State.RUNNING, fetchResult(timer.elapsedTime))
                 }
-                LiveTimer(isActive, timer)
+                LiveTimer(state == State.RUNNING, timer)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 AnimatedVisibility(
-                    visible = isActive,
+                    visible = state == State.RUNNING,
                     enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
                     exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
                 ) {
                     StopButton {
-                        isActive = false
-                        needReset = true
+                        state = State.STOPPED
                     }
                 }
-                ControlButton(isActive) {
-                    isActive = !isActive
-                    if (isActive)
-                        timer.reset()
+                ControlButton(state == State.RUNNING) {
+                    state = if (state == State.RUNNING)
+                        State.FINISHING
+                    else
+                        State.STARTING
                 }
             }
         }

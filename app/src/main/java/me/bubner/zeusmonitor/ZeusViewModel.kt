@@ -10,6 +10,10 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
 class ZeusViewModel(app: Application) : AndroidViewModel(app) {
+    // TODO: dynamic calculation of this variable and displaying it on the app
+    var speedOfSound = 343 // m/s
+        private set
+
     private val dataStore = HistoryDataStore(app.applicationContext)
 
     fun historyFlow() = dataStore.historyFlow()
@@ -18,8 +22,12 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { dataStore.deleteHistoryItem(historyItem) }
 
     fun onNewItem(duration: Duration) {
-        // TODO: improve algo and split between history/calc/info getting
-        val sec = duration.toDouble(DurationUnit.SECONDS)
-        viewModelScope.launch { dataStore.pushHistoryItem(HistoryItem(sec, sec / 3)) }
+        viewModelScope.launch {
+            dataStore.pushHistoryItem(HistoryItem(duration, calculateDistanceKm(duration)))
+        }
+    }
+
+    fun calculateDistanceKm(time: Duration): Double {
+        return (time.toDouble(DurationUnit.SECONDS) * speedOfSound) / 1000
     }
 }

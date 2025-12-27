@@ -68,7 +68,11 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
                 Tab.entries.forEach { tab ->
                     composable(tab.name) {
                         when (tab) {
-                            Tab.Monitor -> MainScreen(viewModel::onNewItem)
+                            Tab.Monitor -> MainScreen(
+                                fetchResult = viewModel::calculateDistanceKm,
+                                onNewItem = viewModel::onNewItem
+                            )
+
                             Tab.History -> HistoryScreen(
                                 history = viewModel.historyFlow(),
                                 onDelete = viewModel::deleteHistoryItem

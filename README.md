@@ -9,6 +9,7 @@ and sound.
 ## Features
 
 - Dynamic calculation of speed of sound using a best approximation with Weather APIs
-- Streamlined Material You design
+- Live feedback and timing
+- Streamlined Material 3 design
 - Calculation history
 - Map overlay and radius

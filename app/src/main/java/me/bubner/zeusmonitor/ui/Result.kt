@@ -8,21 +8,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import me.bubner.zeusmonitor.timer.ElapsedTime
 import me.bubner.zeusmonitor.util.Math.round
-import kotlin.time.DurationUnit
 
 @Preview
 @Composable
-fun Result(active: Boolean = false, timer: ElapsedTime = ElapsedTime()) {
+fun Result(active: Boolean = false, distance: Double = 0.0) {
     val fontSize by animateDpAsState(
         targetValue = if (active) 24.dp else 48.dp,
         label = "result size"
     )
 
     Text(
-        // TODO: use ViewModel
-        "${timer.elapsedTime.toDouble(DurationUnit.SECONDS) / 3 round 2} km",
+        "${distance round 2} km",
         style = MaterialTheme.typography.displayLarge.copy(fontSize = fontSize.value.sp)
     )
 }
