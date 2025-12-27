@@ -11,7 +11,7 @@ import kotlin.time.DurationUnit
 
 class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     // TODO: dynamic calculation of this variable and displaying it on the app
-    var speedOfSound = 343 // m/s
+    var speedOfSound = 343.0 // m/s
         private set
 
     private val dataStore = HistoryDataStore(app.applicationContext)
@@ -23,7 +23,13 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onNewItem(duration: Duration) {
         viewModelScope.launch {
-            dataStore.pushHistoryItem(HistoryItem(duration, calculateDistanceKm(duration)))
+            dataStore.pushHistoryItem(
+                HistoryItem(
+                    duration,
+                    calculateDistanceKm(duration),
+                    speedOfSound
+                )
+            )
         }
     }
 

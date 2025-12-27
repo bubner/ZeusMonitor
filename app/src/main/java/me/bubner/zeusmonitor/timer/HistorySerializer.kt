@@ -7,7 +7,6 @@ import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.io.OutputStream
 
-
 object HistorySerializer : Serializer<History> {
     override val defaultValue: History = History(emptyList())
     override suspend fun readFrom(input: InputStream): History =
