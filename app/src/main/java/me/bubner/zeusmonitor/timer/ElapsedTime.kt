@@ -17,8 +17,6 @@ import kotlin.time.Duration.Companion.milliseconds
 class ElapsedTime {
     val elapsedTime
         get() = elapsedMs.milliseconds
-    val isValid
-        get() = elapsedMs != 0L
 
     private var elapsedMs by mutableLongStateOf(0L)
 

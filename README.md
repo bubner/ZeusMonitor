@@ -11,5 +11,5 @@ and sound.
 - Dynamic calculation of speed of sound using a best approximation with Weather APIs
 - Live feedback and timing
 - Streamlined Material 3 design
-- Calculation history
+- Calculation and timing history
 - Map overlay and radius

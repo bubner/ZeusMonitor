@@ -29,7 +29,9 @@ import me.bubner.zeusmonitor.ui.LiveTimer
 import me.bubner.zeusmonitor.ui.Result
 import me.bubner.zeusmonitor.ui.StopButton
 import me.bubner.zeusmonitor.util.CenteredColumn
+import me.bubner.zeusmonitor.util.Math.round
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 enum class State {
     STOPPED,
@@ -63,7 +65,8 @@ fun MainScreen(onNewItem: (Duration) -> Unit = {}, fetchResult: (Duration) -> Do
             }
 
             State.FINISHING -> {
-                onNewItem(timer.elapsedTime)
+                if (timer.elapsedTime.toDouble(DurationUnit.SECONDS) round 2 > 0.0)
+                    onNewItem(timer.elapsedTime)
                 state = State.FINISHED
             }
 

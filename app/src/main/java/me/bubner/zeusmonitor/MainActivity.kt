@@ -75,7 +75,7 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
 
                             Tab.History -> HistoryScreen(
                                 history = viewModel.historyFlow(),
-                                onDelete = viewModel::deleteHistoryItem
+                                deleteItem = viewModel::deleteHistoryItem
                             )
                         }
                     }
