@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import me.bubner.zeusmonitor.timer.HistoryItem
 import me.bubner.zeusmonitor.util.Math.round
+import me.bubner.zeusmonitor.util.pad
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -105,12 +106,12 @@ fun Entry(it: HistoryItem = HistoryItem(0.0, 0.0, 0.0), onClick: () -> Unit = {}
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "${it.distanceKm round 2} km",
+                    text = "${it.distanceKm round 2 pad 2} km",
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = Modifier.padding(end = 12.dp)
                 )
                 Text(
-                    text = "${it.elapsedTimeSec round 2} sec",
+                    text = "${it.elapsedTimeSec round 2 pad 2} sec",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Spacer(modifier = Modifier.weight(1f))
@@ -121,7 +122,10 @@ fun Entry(it: HistoryItem = HistoryItem(0.0, 0.0, 0.0), onClick: () -> Unit = {}
                 )
             }
             Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                Text(sdf.format(Date(it.unixTimeMillis)))
+                Text(
+                    sdf.format(Date(it.unixTimeMillis)),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -138,11 +142,13 @@ fun ItemDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(375.dp),
+                .height(500.dp),
             shape = RoundedCornerShape(16.dp),
         ) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -153,14 +159,14 @@ fun ItemDialog(
                 )
                 Text("Lightning estimated to be")
                 Text(
-                    "${it.distanceKm round 2} km",
-                    modifier = Modifier.padding(8.dp),
+                    "${it.distanceKm round 2 pad 2} km",
+                    modifier = Modifier.padding(4.dp),
                     style = MaterialTheme.typography.headlineLarge
                 )
-                Text("from your location at the time.")
+                Text("from your location at this time.")
                 // TODO: after map is set up, is it worth recording map data to show here too? left a gap here for later
                 Text(
-                    "(timed ${it.elapsedTimeSec round 2} sec, speed of sound ${it.speedOfSoundMPerS round 2} m/s)",
+                    "(timed ${it.elapsedTimeSec round 2 pad 2} sec at ${it.speedOfSoundMPerS round 2 pad 2} m/s)",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Row(

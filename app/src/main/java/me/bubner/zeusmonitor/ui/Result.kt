@@ -9,6 +9,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.bubner.zeusmonitor.util.Math.round
+import me.bubner.zeusmonitor.util.pad
 
 @Preview
 @Composable
@@ -19,7 +20,7 @@ fun Result(active: Boolean = false, distance: Double = 0.0) {
     )
 
     Text(
-        "${distance round 2} km",
+        "${distance round 2 pad 2} km",
         style = MaterialTheme.typography.displayLarge.copy(fontSize = fontSize.value.sp)
     )
 }

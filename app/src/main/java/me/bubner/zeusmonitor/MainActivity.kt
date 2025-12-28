@@ -70,7 +70,8 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
                         when (tab) {
                             Tab.Monitor -> MainScreen(
                                 fetchResult = viewModel::calculateDistanceKm,
-                                onNewItem = viewModel::onNewItem
+                                onNewItem = viewModel::onNewItem,
+                                speedOfSound = viewModel.speedOfSound
                             )
 
                             Tab.History -> HistoryScreen(

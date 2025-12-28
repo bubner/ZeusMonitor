@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
+import me.bubner.zeusmonitor.util.Math.round
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -17,6 +18,9 @@ import kotlin.time.Duration.Companion.milliseconds
 class ElapsedTime {
     val elapsedTime
         get() = elapsedMs.milliseconds
+    val isValid
+        // Simulates an epsilon threshold as we only display 2 dp timer values in seconds
+        get() = elapsedMs * 1000 round 2 > 0.0
 
     private var elapsedMs by mutableLongStateOf(0L)
 

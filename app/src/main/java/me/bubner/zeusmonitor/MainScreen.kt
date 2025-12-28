@@ -2,16 +2,22 @@ package me.bubner.zeusmonitor
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FiberManualRecord
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,18 +26,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.bubner.zeusmonitor.timer.ElapsedTime
-import me.bubner.zeusmonitor.ui.CalculatingText
 import me.bubner.zeusmonitor.ui.ControlButton
 import me.bubner.zeusmonitor.ui.LiveTimer
 import me.bubner.zeusmonitor.ui.Result
 import me.bubner.zeusmonitor.ui.StopButton
 import me.bubner.zeusmonitor.util.CenteredColumn
 import me.bubner.zeusmonitor.util.Math.round
+import me.bubner.zeusmonitor.util.pad
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
 
 enum class State {
     STOPPED,
@@ -43,7 +50,11 @@ enum class State {
 
 @Preview(showBackground = true, backgroundColor = 0xffffff)
 @Composable
-fun MainScreen(onNewItem: (Duration) -> Unit = {}, fetchResult: (Duration) -> Double = { 0.0 }) {
+fun MainScreen(
+    onNewItem: (Duration) -> Unit = {},
+    fetchResult: (Duration) -> Double = { 0.0 },
+    speedOfSound: Double = 0.0
+) {
     val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
     var state by rememberSaveable { mutableStateOf(State.STOPPED) }
 
@@ -65,7 +76,7 @@ fun MainScreen(onNewItem: (Duration) -> Unit = {}, fetchResult: (Duration) -> Do
             }
 
             State.FINISHING -> {
-                if (timer.elapsedTime.toDouble(DurationUnit.SECONDS) round 2 > 0.0)
+                if (timer.isValid)
                     onNewItem(timer.elapsedTime)
                 state = State.FINISHED
             }
@@ -77,12 +88,29 @@ fun MainScreen(onNewItem: (Duration) -> Unit = {}, fetchResult: (Duration) -> Do
         }
     }
 
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
+    // TODO: map and speed of sound display/editor system
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(12.dp)
+            .fillMaxWidth()
+            .clickable {//todo
+            }
     ) {
-        // TODO: map and speed of sound display/editor system
+        Text(
+            text = "Speed of sound in your area: ${speedOfSound round 2 pad 2} m/s",
+            textDecoration = TextDecoration.Underline,
+            style = MaterialTheme.typography.bodySmall
+        )
+        Icon(
+            imageVector = Icons.Default.FiberManualRecord,
+            tint = Color.Green,
+            modifier = Modifier
+                .size(18.dp)
+                .padding(start = 4.dp),
+            contentDescription = ""
+        )
     }
 
     Column(
@@ -90,38 +118,34 @@ fun MainScreen(onNewItem: (Duration) -> Unit = {}, fetchResult: (Duration) -> Do
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     ) {
-        CenteredColumn(Modifier.padding(24.dp)) {
-            CenteredColumn(Modifier.padding(12.dp)) {
-                CenteredColumn {
-                    AnimatedVisibility(
-                        visible = state == State.RUNNING,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        CalculatingText()
-                    }
-                    Result(state == State.RUNNING, fetchResult(timer.elapsedTime))
-                }
+        CenteredColumn(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            CenteredColumn(verticalArrangement = Arrangement.spacedBy((-10).dp)) {
+                Result(state == State.RUNNING, fetchResult(timer.elapsedTime))
                 LiveTimer(state == State.RUNNING, timer)
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AnimatedVisibility(
-                    visible = state == State.RUNNING,
-                    enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
-                    exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+            CenteredColumn {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    StopButton {
-                        state = State.STOPPED
+                    AnimatedVisibility(
+                        visible = state == State.RUNNING,
+                        enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
+                        exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+                    ) {
+                        StopButton {
+                            state = State.STOPPED
+                        }
                     }
-                }
-                ControlButton(state == State.RUNNING) {
-                    state = if (state == State.RUNNING)
-                        State.FINISHING
-                    else
-                        State.STARTING
+                    ControlButton(state == State.RUNNING) {
+                        state = if (state == State.RUNNING)
+                            State.FINISHING
+                        else
+                            State.STARTING
+                    }
                 }
             }
         }
