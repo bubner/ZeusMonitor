@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +43,10 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
+    val speedOfSound by viewModel.speedOfSound.collectAsState()
+    val speedMode by viewModel.speedMode.collectAsState()
+    val lastKnownUserSpeedOfSound by viewModel.lastKnownUserSpeedOfSound.collectAsState()
+
     // We prefer to use our own colours rather than the user's (yellow/blue)
     ZeusMonitorTheme(dynamicColor = false) {
         Scaffold(
@@ -71,7 +76,12 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
                             Tab.Monitor -> MainScreen(
                                 fetchResult = viewModel::calculateDistanceKm,
                                 onNewItem = viewModel::onNewItem,
-                                speedOfSound = viewModel.speedOfSound
+                                speedOfSound = speedOfSound,
+                                speedMode = speedMode,
+                                onWeatherSyncChange = { viewModel.setWeatherSync(it) },
+                                onRequestSynchronisation = { viewModel.synchroniseSpeedOfSound() },
+                                onUserSpeedOfSoundInput = { viewModel.onUserSpeedOfSoundInput(it) },
+                                lastKnownUserSpeedOfSound = lastKnownUserSpeedOfSound
                             )
 
                             Tab.History -> HistoryScreen(

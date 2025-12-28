@@ -48,7 +48,7 @@ import java.util.Locale
 // Constant locale is fine, this app shouldn't expect that sort of usage and restarts will resolve
 // this synchronisation. Preferred over regenerating `sdf` each render cycle.
 @SuppressLint("ConstantLocale")
-val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.getDefault())
+val sdf = SimpleDateFormat("yyyy-MM-dd hh:mm:ss a z", Locale.getDefault())
 
 @Composable
 fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) -> Unit) {
