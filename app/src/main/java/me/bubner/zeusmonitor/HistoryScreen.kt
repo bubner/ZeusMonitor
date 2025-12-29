@@ -39,6 +39,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import me.bubner.zeusmonitor.timer.HistoryItem
+import me.bubner.zeusmonitor.ui.LiveMap
 import me.bubner.zeusmonitor.util.Math.round
 import me.bubner.zeusmonitor.util.pad
 import java.text.SimpleDateFormat
@@ -164,13 +165,12 @@ fun ItemDialog(
                     style = MaterialTheme.typography.headlineLarge
                 )
                 Text("from your location at this time.")
-                // TODO: after map is set up, is it worth recording map data to show here too? left a gap here for later
+                LiveMap(modifier = Modifier.padding(vertical = 16.dp))
                 Text(
                     "(timed ${it.elapsedTimeSec round 2 pad 2} sec at ${it.speedOfSoundMPerS round 2 pad 2} m/s)",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Row(
-                    modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {

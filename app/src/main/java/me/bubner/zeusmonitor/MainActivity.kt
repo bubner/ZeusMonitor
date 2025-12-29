@@ -21,6 +21,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import me.bubner.zeusmonitor.ui.DeleteAllHistoryButton
+import me.bubner.zeusmonitor.ui.Navbar
+import me.bubner.zeusmonitor.ui.Tab
 import me.bubner.zeusmonitor.ui.theme.ZeusMonitorTheme
 
 /**

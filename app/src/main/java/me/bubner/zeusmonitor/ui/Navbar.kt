@@ -1,4 +1,4 @@
-package me.bubner.zeusmonitor
+package me.bubner.zeusmonitor.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History

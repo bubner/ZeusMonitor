@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
@@ -51,6 +52,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.bubner.zeusmonitor.timer.ElapsedTime
 import me.bubner.zeusmonitor.ui.ControlButton
+import me.bubner.zeusmonitor.ui.LiveMap
 import me.bubner.zeusmonitor.ui.LiveTimer
 import me.bubner.zeusmonitor.ui.Result
 import me.bubner.zeusmonitor.ui.StopButton
@@ -115,66 +117,66 @@ fun MainScreen(
         }
     }
 
-    // TODO: map
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(12.dp)
-            .fillMaxWidth()
-            .clickable { displaySpeedOfSoundInterface = true }
-    ) {
-        Text(
-            text = "Speed of sound in your area: ${speedOfSound round 2 pad 2} m/s",
-            textDecoration = TextDecoration.Underline,
-            style = MaterialTheme.typography.bodySmall
-        )
-        Icon(
-            imageVector = Icons.Default.FiberManualRecord,
-            tint = when (speedMode) {
-                ZeusViewModel.SpeedMode.SYNCHRONISED -> Color.Green
-                ZeusViewModel.SpeedMode.USER -> Color.Cyan
-                ZeusViewModel.SpeedMode.FALLBACK -> Orange
-            },
+    CenteredColumn {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .size(18.dp)
-                .padding(start = 4.dp),
-            contentDescription = "Speed of sound status"
-        )
-    }
-
-    Column(
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        CenteredColumn(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+                .padding(12.dp)
+                .fillMaxWidth()
+                .clickable { displaySpeedOfSoundInterface = true }
         ) {
-            CenteredColumn(verticalArrangement = Arrangement.spacedBy((-10).dp)) {
-                Result(state == State.RUNNING, fetchResult(timer.elapsedTime))
-                LiveTimer(state == State.RUNNING, timer)
-            }
-            CenteredColumn {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AnimatedVisibility(
-                        visible = state == State.RUNNING,
-                        enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
-                        exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+            Text(
+                text = "Speed of sound in your area: ${speedOfSound round 2 pad 2} m/s",
+                textDecoration = TextDecoration.Underline,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Icon(
+                imageVector = Icons.Default.FiberManualRecord,
+                tint = when (speedMode) {
+                    ZeusViewModel.SpeedMode.SYNCHRONISED -> Color.Green
+                    ZeusViewModel.SpeedMode.USER -> Color.Cyan
+                    ZeusViewModel.SpeedMode.FALLBACK -> Orange
+                },
+                modifier = Modifier
+                    .size(18.dp)
+                    .padding(start = 4.dp),
+                contentDescription = "Speed of sound status"
+            )
+        }
+        LiveMap()
+        Column(
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            CenteredColumn(
+                modifier = Modifier.padding(bottom = 24.dp, top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                CenteredColumn(verticalArrangement = Arrangement.spacedBy((-10).dp)) {
+                    Result(state == State.RUNNING, fetchResult(timer.elapsedTime))
+                    LiveTimer(state == State.RUNNING, timer)
+                }
+                CenteredColumn {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        StopButton {
-                            state = State.STOPPED
+                        AnimatedVisibility(
+                            visible = state == State.RUNNING,
+                            enter = expandHorizontally(expandFrom = Alignment.Start) + fadeIn(),
+                            exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+                        ) {
+                            StopButton {
+                                state = State.STOPPED
+                            }
                         }
-                    }
-                    ControlButton(state == State.RUNNING) {
-                        state = if (state == State.RUNNING)
-                            State.FINISHING
-                        else
-                            State.STARTING
+                        ControlButton(state == State.RUNNING) {
+                            state = if (state == State.RUNNING)
+                                State.FINISHING
+                            else
+                                State.STARTING
+                        }
                     }
                 }
             }
@@ -196,6 +198,8 @@ fun MainScreen(
         )
 }
 
+private val ACCEPTED_INPUT_RANGE = 0.0..10000.0
+
 @Preview
 @Composable
 fun SpeedOfSoundEditor(
@@ -215,7 +219,8 @@ fun SpeedOfSoundEditor(
     LaunchedEffect(userInput.text) {
         // Will only accept valid decimals
         userInput.text.toString().toDoubleOrNull()?.let {
-            onUserSpeedOfSoundInput(it)
+            if (it in ACCEPTED_INPUT_RANGE)
+                onUserSpeedOfSoundInput(it)
         }
     }
 
@@ -306,7 +311,13 @@ fun SpeedOfSoundEditor(
                         lineLimits = TextFieldLineLimits.SingleLine,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal
-                        )
+                        ),
+                        inputTransformation = InputTransformation {
+                            asCharSequence().toString().toDoubleOrNull()?.let {
+                                if (it !in ACCEPTED_INPUT_RANGE)
+                                    revertAllChanges()
+                            }
+                        }
                     )
                 }
                 Row(
