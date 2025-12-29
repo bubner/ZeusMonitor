@@ -1,6 +1,7 @@
 package me.bubner.zeusmonitor
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,7 +57,11 @@ fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) ->
     val historyItems by history.collectAsStateWithLifecycle(emptyList())
     var dialog by remember { mutableStateOf(@Composable {}) }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.surface)
+    ) {
         item {
             Text(
                 "History",

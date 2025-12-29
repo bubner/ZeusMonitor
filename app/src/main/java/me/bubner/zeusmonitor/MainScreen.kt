@@ -144,7 +144,7 @@ fun MainScreen(
                 contentDescription = "Speed of sound status"
             )
         }
-        LiveMap()
+        LiveMap(modifier = Modifier.padding(horizontal = 16.dp))
         Column(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally,
