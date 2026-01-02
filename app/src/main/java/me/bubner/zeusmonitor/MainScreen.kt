@@ -1,12 +1,15 @@
 package me.bubner.zeusmonitor
 
+import android.location.Location
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -31,16 +34,17 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -48,8 +52,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import me.bubner.zeusmonitor.timer.ElapsedTime
 import me.bubner.zeusmonitor.ui.ControlButton
 import me.bubner.zeusmonitor.ui.LiveMap
@@ -61,7 +63,6 @@ import me.bubner.zeusmonitor.util.CenteredColumn
 import me.bubner.zeusmonitor.util.Math.round
 import me.bubner.zeusmonitor.util.pad
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 enum class State {
     STOPPED,
@@ -81,7 +82,9 @@ fun MainScreen(
     onWeatherSyncChange: (Boolean) -> Unit = {},
     onRequestSynchronisation: () -> Unit = {},
     onUserSpeedOfSoundInput: (Double) -> Unit = {},
-    lastKnownUserSpeedOfSound: Double = 0.0
+    lastKnownUserSpeedOfSound: Double = 0.0,
+    userLocation: Location = Location("null"),
+    setUserLocation: (Location) -> Unit = {}
 ) {
     val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
     var state by rememberSaveable { mutableStateOf(State.STOPPED) }
@@ -144,7 +147,23 @@ fun MainScreen(
                 contentDescription = "Speed of sound status"
             )
         }
-        LiveMap(modifier = Modifier.padding(horizontal = 16.dp))
+        // Lack of recomposition is fine, this will run on initial composition
+        if (!ZeusViewModel.locationUnavailable)
+            LiveMap(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                userLocation = userLocation,
+                setUserLocation = setUserLocation
+            )
+        else
+            Box(
+                modifier = Modifier
+                    .background(Color.LightGray)
+                    .fillMaxSize()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(16.dp)),
+            ) {
+                Text("Location permission denied. Unable to show map.")
+            }
         Column(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -212,9 +231,6 @@ fun SpeedOfSoundEditor(
     lastKnownUserSpeedOfSound: Double = 0.0
 ) {
     var useWeatherSync by remember { mutableStateOf(speedMode != ZeusViewModel.SpeedMode.USER) }
-    var requestCooldownActive by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-
     val userInput = rememberTextFieldState(lastKnownUserSpeedOfSound round 2 pad 2)
     LaunchedEffect(userInput.text) {
         // Will only accept valid decimals
@@ -278,24 +294,19 @@ fun SpeedOfSoundEditor(
                     Switch(checked = useWeatherSync, onCheckedChange = {
                         useWeatherSync = it
                         onWeatherSyncChange(it)
+                        // Auto input or auto sync
                         if (!it)
                             onUserSpeedOfSoundInput(lastKnownUserSpeedOfSound)
+                        else
+                            onRequestSynchronisation()
                     })
                 }
                 if (useWeatherSync) {
                     Button(
                         onClick = {
                             onRequestSynchronisation()
-                            requestCooldownActive = true
-                            scope.launch {
-                                // Prevent same window spam
-                                // Doesn't prevent opening and closing to re-request but this
-                                // takes active effort which is fine for the scope that is lost
-                                delay(5.seconds)
-                                requestCooldownActive = false
-                            }
+                            onDismissRequest()
                         },
-                        enabled = !requestCooldownActive,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             contentColor = MaterialTheme.colorScheme.secondary,
@@ -317,7 +328,11 @@ fun SpeedOfSoundEditor(
                                 if (it !in ACCEPTED_INPUT_RANGE)
                                     revertAllChanges()
                             }
-                        }
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedLabelColor = MaterialTheme.colorScheme.secondary,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.secondary
+                        )
                     )
                 }
                 Row(

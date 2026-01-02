@@ -2,6 +2,7 @@ package me.bubner.zeusmonitor
 
 import android.app.Application
 import android.content.Context
+import android.location.Location
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
@@ -16,11 +17,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bubner.zeusmonitor.timer.HistoryDataStore
 import me.bubner.zeusmonitor.timer.HistoryItem
+import kotlin.math.sqrt
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
 private const val SETTINGS_WEATHER_SYNC_ENABLED = "weatherSyncEnabled"
 private const val SETTINGS_LAST_USER_SPEED_OF_SOUND = "lastUserSpeedOfSound"
+private const val LOCATION_PENDING_PROVIDER = "null"
 
 class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     private val sharedPrefs = app.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -29,6 +32,7 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     )
     private val _speedOfSound = MutableStateFlow(_lastKnownUserSpeedOfSound.value) // m/s
     private val _speedMode = MutableStateFlow(SpeedMode.FALLBACK)
+    private val _userLocation = MutableStateFlow(Location(LOCATION_PENDING_PROVIDER))
 
     /**
      * Speed of sound as defined by the current [speedMode].
@@ -44,6 +48,11 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
      * The last known speed of sound set by the user.
      */
     val lastKnownUserSpeedOfSound: StateFlow<Double> = _lastKnownUserSpeedOfSound
+
+    /**
+     * Last known mutable user location. Updated by MapLibre via [updateLocation].
+     */
+    val userLocation: StateFlow<Location> = _userLocation
 
     private val dataStore = HistoryDataStore(app.applicationContext)
 
@@ -111,6 +120,13 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
+     * Propagate an update to the user's location.
+     */
+    fun updateLocation(location: Location) {
+        _userLocation.value = location
+    }
+
+    /**
      * Updates [speedOfSound] to the most accurate value using Weather APIs.
      */
     fun synchroniseSpeedOfSound() {
@@ -118,7 +134,8 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
         invalidateAndRefreshMode()
         if (_speedMode.value == SpeedMode.USER)
             return
-        Toast.makeText(application.applicationContext, "Syncing now...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(application.applicationContext, "Syncing now...", Toast.LENGTH_SHORT)
+            .show()
         viewModelScope.launch {
             val speed = withContext(Dispatchers.IO) {
                 fetchSpeed()
@@ -133,9 +150,31 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private suspend fun fetchSpeed(): Double {
-        // TODO: dynamic calcs, this is temporary
-        delay(500)
-        return 343.0 + Math.random()
+        // Busy wait until we have 1) a valid location or 2) no location availability by rejection
+        while (_userLocation.value.provider == LOCATION_PENDING_PROVIDER && !locationUnavailable) {
+            delay(100L)
+        }
+        if (locationUnavailable) {
+            // Weather APIs will not function, we need to alert the user and swap to user mode
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    application.applicationContext,
+                    "Syncing not possible without Location permission!",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            _speedMode.value = SpeedMode.USER
+            return 343.0
+        }
+
+        val tempC = 20 // TODO
+
+        // v=\sqrt{\frac{\gamma RT}{M}}
+        // where R is the molar gas constant (8.3145),
+        // gamma is the adiabatic index (1.4),
+        // M is the molar mass of dry air (0.0289645)
+        // and T is ambient temperature in Kelvin
+        return 331.3 * sqrt(1 + tempC / 273.15)
     }
 
     private fun invalidateAndRefreshMode() {
@@ -160,5 +199,12 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
          * Default when Weather APIs are still fetching
          */
         FALLBACK
+    }
+
+    companion object {
+        /**
+         * Whether an attempt to fetch location has failed and will not be expected.
+         */
+        var locationUnavailable = false
     }
 }
