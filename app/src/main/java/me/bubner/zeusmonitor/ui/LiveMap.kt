@@ -19,6 +19,7 @@ import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.maps.Style
 import org.ramani.compose.CameraPosition
 import org.ramani.compose.MapLibre
+import org.ramani.compose.UiSettings
 
 @Composable
 fun ColumnScope.LiveMap(
@@ -41,6 +42,10 @@ fun ColumnScope.LiveMap(
             .clip(RoundedCornerShape(16.dp)),
         userLocation = location,
         cameraMode = remember { mutableIntStateOf(CameraMode.TRACKING_GPS) },
-        cameraPosition = cameraPosition
+        cameraPosition = cameraPosition,
+        uiSettings = UiSettings(
+            isLogoEnabled = false,
+            isAttributionEnabled = false
+        )
     )
 }
