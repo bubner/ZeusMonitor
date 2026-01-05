@@ -3,18 +3,31 @@ package me.bubner.zeusmonitor
 import android.app.Application
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.plugins.timeout
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import me.bubner.zeusmonitor.timer.HistoryDataStore
 import me.bubner.zeusmonitor.timer.HistoryItem
 import me.bubner.zeusmonitor.util.toLatLng
@@ -27,6 +40,8 @@ private const val SETTINGS_LAST_USER_SPEED_OF_SOUND = "lastUserSpeedOfSound"
 private const val LOCATION_PENDING_PROVIDER = "null"
 
 class ZeusViewModel(app: Application) : AndroidViewModel(app) {
+    private val client = HttpClient(Android)
+    private var fetchSpeedJob: Job? = null
     private val sharedPrefs = app.getSharedPreferences("settings", Context.MODE_PRIVATE)
     private val _lastKnownUserSpeedOfSound = MutableStateFlow(
         sharedPrefs.getFloat(SETTINGS_LAST_USER_SPEED_OF_SOUND, 343f).toDouble()
@@ -34,6 +49,7 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     private val _speedOfSound = MutableStateFlow(_lastKnownUserSpeedOfSound.value) // m/s
     private val _speedMode = MutableStateFlow(SpeedMode.FALLBACK)
     private val _userLocation = MutableStateFlow(Location(LOCATION_PENDING_PROVIDER))
+    private val _isFetchingWeather = MutableStateFlow(false)
 
     /**
      * Speed of sound as defined by the current [speedMode].
@@ -56,8 +72,14 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     val userLocation: StateFlow<Location> = _userLocation
 
     /**
+     * Whether the current [fetchSpeedJob] is fetching weather from the API.
+     */
+    val isFetchingWeather: StateFlow<Boolean> = _isFetchingWeather
+
+    /**
      * Whether location information is currently available. Will stay stuck if permission not granted.
      */
+    // Recomposed whenever _userLocation is updated
     val isLocationAvailable
         get() = _userLocation.value.provider != LOCATION_PENDING_PROVIDER
 
@@ -65,7 +87,6 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         locationUnavailable = false
-        invalidateAndRefreshMode()
         synchroniseSpeedOfSound()
     }
 
@@ -145,11 +166,12 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
             return
         Toast.makeText(application.applicationContext, "Syncing now...", Toast.LENGTH_SHORT)
             .show()
-        viewModelScope.launch {
+        fetchSpeedJob?.cancel()
+        fetchSpeedJob = viewModelScope.launch {
             val speed = withContext(Dispatchers.IO) {
                 fetchSpeed()
             }
-            if (_speedMode.value == SpeedMode.USER)
+            if (_speedMode.value == SpeedMode.USER || speed < 0)
                 return@launch
             _speedOfSound.value = speed
             _speedMode.value = SpeedMode.SYNCHRONISED
@@ -173,17 +195,63 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
                 ).show()
             }
             _speedMode.value = SpeedMode.USER
-            return 343.0
+            return -1.0
         }
 
-        val tempC = 20 // TODO
+        val latLng = _userLocation.value.toLatLng()
+        try {
+            _isFetchingWeather.value = true
+            val weatherResponse = client.get("https://api.open-meteo.com/v1/forecast") {
+                parameter("latitude", latLng.latitude)
+                parameter("longitude", latLng.longitude)
+                parameter("current", "temperature_2m")
+                timeout {
+                    connectTimeoutMillis = 5000
+                    requestTimeoutMillis = 5000
+                    socketTimeoutMillis = 5000
+                }
+            }
 
-        // v=\sqrt{\frac{\gamma RT}{M}}
-        // where R is the molar gas constant (8.3145),
-        // gamma is the adiabatic index (1.4),
-        // M is the molar mass of dry air (0.0289645)
-        // and T is ambient temperature in Kelvin
-        return 331.3 * sqrt(1 + tempC / 273.15)
+            // We opt to using static json parsing instead of serialising as we don't pass this data elsewhere
+            val body = Json.parseToJsonElement(weatherResponse.bodyAsText()).jsonObject
+            val tempC = body["current"]?.jsonObject["temperature_2m"]?.jsonPrimitive?.doubleOrNull
+
+            if (weatherResponse.status.value == 400 || tempC == null) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        application.applicationContext,
+                        "Failed to get weather data!",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                Log.e(
+                    "ZeusMonitor",
+                    "Failed to get weather data: ${body["reason"]?.jsonPrimitive?.content}"
+                )
+                _speedMode.value = SpeedMode.USER
+                return -1.0
+            }
+
+            // v=\sqrt{\frac{\gamma RT}{M}}
+            // where R is the molar gas constant (8.3145),
+            // gamma is the adiabatic index (1.4),
+            // M is the molar mass of dry air (0.0289645)
+            // and T is ambient temperature in Kelvin
+            return 331.3 * sqrt(1 + tempC / 273.15)
+        } catch (e: ConnectTimeoutException) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    application.applicationContext,
+                    "Weather request timeout! Retrying...",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            Log.e("ZeusMonitor", "Weather request timeout", e)
+            // We try again which becomes a minimum rate of every 5 seconds
+            return fetchSpeed()
+        } finally {
+            _isFetchingWeather.value = false
+        }
     }
 
     private fun invalidateAndRefreshMode() {

@@ -78,6 +78,7 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
     val speedMode by viewModel.speedMode.collectAsState()
     val lastKnownUserSpeedOfSound by viewModel.lastKnownUserSpeedOfSound.collectAsState()
     val userLocation by viewModel.userLocation.collectAsState()
+    val isFetchingWeather by viewModel.isFetchingWeather.collectAsState()
 
     // We prefer to use our own colours rather than the user's (yellow/blue)
     ZeusMonitorTheme(dynamicColor = false) {
@@ -116,7 +117,8 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
                                 lastKnownUserSpeedOfSound = lastKnownUserSpeedOfSound,
                                 userLocation = userLocation,
                                 setUserLocation = { viewModel.updateLocation(it) },
-                                isLocationAvailable = viewModel::isLocationAvailable
+                                isLocationAvailable = viewModel.isLocationAvailable,
+                                isFetchingWeather = isFetchingWeather
                             )
 
                             Tab.History -> HistoryScreen(

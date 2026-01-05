@@ -71,4 +71,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.play.services.location)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.android)
 }

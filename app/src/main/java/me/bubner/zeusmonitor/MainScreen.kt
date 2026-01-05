@@ -16,18 +16,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -56,8 +52,8 @@ import me.bubner.zeusmonitor.ui.ControlButton
 import me.bubner.zeusmonitor.ui.LiveMap
 import me.bubner.zeusmonitor.ui.LiveTimer
 import me.bubner.zeusmonitor.ui.Result
+import me.bubner.zeusmonitor.ui.StatusIcon
 import me.bubner.zeusmonitor.ui.StopButton
-import me.bubner.zeusmonitor.ui.theme.Orange
 import me.bubner.zeusmonitor.util.CenteredColumn
 import me.bubner.zeusmonitor.util.Math.round
 import me.bubner.zeusmonitor.util.pad
@@ -84,7 +80,8 @@ fun MainScreen(
     lastKnownUserSpeedOfSound: Double = 0.0,
     userLocation: Location = Location("null"),
     setUserLocation: (Location) -> Unit = {},
-    isLocationAvailable: () -> Boolean = { false }
+    isLocationAvailable: Boolean = false,
+    isFetchingWeather: Boolean = false
 ) {
     val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
     var state by rememberSaveable { mutableStateOf(State.STOPPED) }
@@ -134,18 +131,7 @@ fun MainScreen(
                 textDecoration = TextDecoration.Underline,
                 style = MaterialTheme.typography.bodySmall
             )
-            Icon(
-                imageVector = Icons.Default.FiberManualRecord,
-                tint = when (speedMode) {
-                    ZeusViewModel.SpeedMode.SYNCHRONISED -> Color.Green
-                    ZeusViewModel.SpeedMode.USER -> Color.Cyan
-                    ZeusViewModel.SpeedMode.FALLBACK -> Orange
-                },
-                modifier = Modifier
-                    .size(18.dp)
-                    .padding(start = 4.dp),
-                contentDescription = "Speed of sound status"
-            )
+            StatusIcon(speedMode, isFetchingWeather)
         }
         // Lack of recomposition is fine, this will run on initial composition
         if (!ZeusViewModel.locationUnavailable)
@@ -192,7 +178,7 @@ fun MainScreen(
                         }
                         ControlButton(
                             active = state == State.RUNNING,
-                            showWarning = !isLocationAvailable()
+                            showWarning = !isLocationAvailable
                         ) {
                             state = if (state == State.RUNNING)
                                 State.FINISHING
@@ -216,7 +202,8 @@ fun MainScreen(
             onWeatherSyncChange = onWeatherSyncChange,
             onRequestSynchronisation = onRequestSynchronisation,
             onUserSpeedOfSoundInput = onUserSpeedOfSoundInput,
-            lastKnownUserSpeedOfSound = lastKnownUserSpeedOfSound
+            lastKnownUserSpeedOfSound = lastKnownUserSpeedOfSound,
+            isFetchingWeather = isFetchingWeather
         )
 }
 
@@ -231,7 +218,8 @@ fun SpeedOfSoundEditor(
     onWeatherSyncChange: (Boolean) -> Unit = {},
     onRequestSynchronisation: () -> Unit = {},
     onUserSpeedOfSoundInput: (Double) -> Unit = {},
-    lastKnownUserSpeedOfSound: Double = 0.0
+    lastKnownUserSpeedOfSound: Double = 0.0,
+    isFetchingWeather: Boolean = false
 ) {
     var useWeatherSync by remember { mutableStateOf(speedMode != ZeusViewModel.SpeedMode.USER) }
     val userInput = rememberTextFieldState(lastKnownUserSpeedOfSound round 2 pad 2)
@@ -266,27 +254,18 @@ fun SpeedOfSoundEditor(
                         )
                         Text("metres/sec", modifier = Modifier.padding(bottom = 6.dp, start = 6.dp))
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FiberManualRecord,
-                            tint = when (speedMode) {
-                                ZeusViewModel.SpeedMode.SYNCHRONISED -> Color.Green
-                                ZeusViewModel.SpeedMode.USER -> Color.Cyan
-                                ZeusViewModel.SpeedMode.FALLBACK -> Orange
-                            },
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(start = 4.dp),
-                            contentDescription = "Speed of sound status"
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        StatusIcon(speedMode, isFetchingWeather)
                         Text(
                             text = when (speedMode) {
                                 ZeusViewModel.SpeedMode.SYNCHRONISED -> "Synchronised with weather"
                                 ZeusViewModel.SpeedMode.USER -> "Using user-supplied speed"
-                                ZeusViewModel.SpeedMode.FALLBACK -> "Waiting for weather sync"
+                                ZeusViewModel.SpeedMode.FALLBACK -> {
+                                    if (isFetchingWeather)
+                                        "Fetching weather info..."
+                                    else
+                                        "Waiting for weather sync"
+                                }
                             },
                             fontWeight = FontWeight.Bold
                         )
