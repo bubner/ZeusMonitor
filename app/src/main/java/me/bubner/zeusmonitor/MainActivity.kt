@@ -115,7 +115,8 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
                                 onUserSpeedOfSoundInput = { viewModel.onUserSpeedOfSoundInput(it) },
                                 lastKnownUserSpeedOfSound = lastKnownUserSpeedOfSound,
                                 userLocation = userLocation,
-                                setUserLocation = { viewModel.updateLocation(it) }
+                                setUserLocation = { viewModel.updateLocation(it) },
+                                isLocationAvailable = viewModel::isLocationAvailable
                             )
 
                             Tab.History -> HistoryScreen(

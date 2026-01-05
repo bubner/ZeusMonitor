@@ -9,7 +9,6 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -44,13 +43,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import me.bubner.zeusmonitor.timer.ElapsedTime
 import me.bubner.zeusmonitor.ui.ControlButton
@@ -84,7 +83,8 @@ fun MainScreen(
     onUserSpeedOfSoundInput: (Double) -> Unit = {},
     lastKnownUserSpeedOfSound: Double = 0.0,
     userLocation: Location = Location("null"),
-    setUserLocation: (Location) -> Unit = {}
+    setUserLocation: (Location) -> Unit = {},
+    isLocationAvailable: () -> Boolean = { false }
 ) {
     val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
     var state by rememberSaveable { mutableStateOf(State.STOPPED) }
@@ -155,14 +155,14 @@ fun MainScreen(
                 setUserLocation = setUserLocation
             )
         else
-            Box(
+            CenteredColumn(
                 modifier = Modifier
+                    .padding(horizontal = 16.dp)
                     .background(Color.LightGray)
                     .fillMaxSize()
                     .weight(1f)
-                    .clip(RoundedCornerShape(16.dp)),
             ) {
-                Text("Location permission denied. Unable to show map.")
+                Text("Location permission denied. Unable to show map.", fontSize = 10.sp)
             }
         Column(
             verticalArrangement = Arrangement.Bottom,
@@ -190,7 +190,10 @@ fun MainScreen(
                                 state = State.STOPPED
                             }
                         }
-                        ControlButton(state == State.RUNNING) {
+                        ControlButton(
+                            active = state == State.RUNNING,
+                            showWarning = !isLocationAvailable()
+                        ) {
                             state = if (state == State.RUNNING)
                                 State.FINISHING
                             else

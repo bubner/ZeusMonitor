@@ -34,17 +34,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import me.bubner.zeusmonitor.timer.HistoryItem
+import me.bubner.zeusmonitor.ui.RecallMap
+import me.bubner.zeusmonitor.util.CenteredColumn
 import me.bubner.zeusmonitor.util.Math.round
+import me.bubner.zeusmonitor.util.deserializeLatLng
+import me.bubner.zeusmonitor.util.invalidLatLng
 import me.bubner.zeusmonitor.util.pad
+import org.maplibre.android.geometry.LatLng
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Duration.Companion.seconds
 
 // Constant locale is fine, this app shouldn't expect that sort of usage and restarts will resolve
 // this synchronisation. Preferred over regenerating `sdf` each render cycle.
@@ -95,7 +103,10 @@ fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) ->
 
 @Preview(showBackground = true, backgroundColor = 0xffffff)
 @Composable
-fun Entry(it: HistoryItem = HistoryItem(0.0, 0.0, 0.0), onClick: () -> Unit = {}) {
+fun Entry(
+    it: HistoryItem = HistoryItem(0.0.seconds, 0.0, 0.0, LatLng(-1.0, 0.0)),
+    onClick: () -> Unit = {}
+) {
     Surface(
         modifier = Modifier
             .clickable(onClick = onClick)
@@ -139,7 +150,7 @@ fun Entry(it: HistoryItem = HistoryItem(0.0, 0.0, 0.0), onClick: () -> Unit = {}
 @Preview
 @Composable
 fun ItemDialog(
-    it: HistoryItem = HistoryItem(0.0, 0.0, 0.0),
+    it: HistoryItem = HistoryItem(0.0.seconds, 0.0, 0.0, invalidLatLng()),
     onDismissRequest: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
@@ -169,8 +180,24 @@ fun ItemDialog(
                     style = MaterialTheme.typography.headlineLarge
                 )
                 Text("from your location at this time.")
-                // TODO: use a history map that doesnt use user loc but instead store lat/lon
-//                LiveMap(modifier = Modifier.padding(vertical = 16.dp))
+                CenteredColumn(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .weight(1f)
+                ) {
+                    it.latLng.deserializeLatLng().let { loc ->
+                        if (loc != null)
+                            RecallMap(latLng = loc)
+                        else
+                            CenteredColumn(
+                                modifier = Modifier
+                                    .background(Color.LightGray)
+                                    .fillMaxSize()
+                            ) {
+                                Text("No location information recorded.", fontSize = 10.sp)
+                            }
+                    }
+                }
                 Text(
                     "(timed ${it.elapsedTimeSec round 2 pad 2} sec at ${it.speedOfSoundMPerS round 2 pad 2} m/s)",
                     style = MaterialTheme.typography.bodySmall

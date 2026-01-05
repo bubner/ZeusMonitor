@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.bubner.zeusmonitor.timer.HistoryDataStore
 import me.bubner.zeusmonitor.timer.HistoryItem
+import me.bubner.zeusmonitor.util.toLatLng
 import kotlin.math.sqrt
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -54,9 +55,16 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
      */
     val userLocation: StateFlow<Location> = _userLocation
 
+    /**
+     * Whether location information is currently available. Will stay stuck if permission not granted.
+     */
+    val isLocationAvailable
+        get() = _userLocation.value.provider != LOCATION_PENDING_PROVIDER
+
     private val dataStore = HistoryDataStore(app.applicationContext)
 
     init {
+        locationUnavailable = false
         invalidateAndRefreshMode()
         synchroniseSpeedOfSound()
     }
@@ -94,7 +102,8 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
                 HistoryItem(
                     duration,
                     calculateDistanceKm(duration),
-                    _speedOfSound.value
+                    _speedOfSound.value,
+                    _userLocation.value.toLatLng()
                 )
             )
         }
@@ -151,7 +160,7 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
 
     private suspend fun fetchSpeed(): Double {
         // Busy wait until we have 1) a valid location or 2) no location availability by rejection
-        while (_userLocation.value.provider == LOCATION_PENDING_PROVIDER && !locationUnavailable) {
+        while (!isLocationAvailable && !locationUnavailable) {
             delay(100L)
         }
         if (locationUnavailable) {
@@ -204,7 +213,10 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     companion object {
         /**
          * Whether an attempt to fetch location has failed and will not be expected.
+         *
+         * Note this variable's state does *not* cause recompositions.
          */
-        var locationUnavailable = false
+        // Initially true to allow @Preview annotations to function
+        var locationUnavailable = true
     }
 }
