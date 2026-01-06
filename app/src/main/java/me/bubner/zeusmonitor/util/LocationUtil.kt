@@ -5,9 +5,11 @@ import android.content.pm.PackageManager
 import android.location.Location
 import androidx.core.content.ContextCompat
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.spatialk.geojson.Position
 
-// altitude is ignored as it is not used
-fun Location.toLatLng() = LatLng(latitude, longitude)
+fun Location.toLatLng() = LatLng(latitude, longitude, altitude)
+fun LatLng.toPosition() = Position(longitude, latitude, altitude)
+fun Position.toLatLng() = LatLng(latitude, longitude, altitude ?: 0.0)
 
 fun invalidLatLng() = LatLng(0.0, 181.0)
 

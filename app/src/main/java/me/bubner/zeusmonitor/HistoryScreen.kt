@@ -187,7 +187,7 @@ fun ItemDialog(
                 ) {
                     it.latLng.deserializeLatLng().let { loc ->
                         if (loc != null)
-                            RecallMap(latLng = loc)
+                            RecallMap(latLng = loc, radiusKm = it.distanceKm)
                         else
                             CenteredColumn(
                                 modifier = Modifier

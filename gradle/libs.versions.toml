@@ -16,6 +16,7 @@ materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.6"
 playServicesLocation = "21.3.0"
 ramaniMaplibre = "0.9.2"
+turf = "0.6.1"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -41,6 +42,7 @@ ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "k
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClient" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 ramani-maplibre = { module = "org.ramani-maps:ramani-maplibre", version.ref = "ramaniMaplibre" }
+turf = { module = "org.maplibre.spatialk:turf", version.ref = "turf" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -73,4 +73,5 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.android)
+    implementation(libs.turf)
 }
