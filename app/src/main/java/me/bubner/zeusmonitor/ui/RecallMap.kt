@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import me.bubner.zeusmonitor.util.invalidLatLng
 import me.bubner.zeusmonitor.util.toLatLng
 import me.bubner.zeusmonitor.util.toPosition
+import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.maps.Style
@@ -17,6 +18,7 @@ import org.ramani.compose.Fill
 import org.ramani.compose.MapLibre
 import org.ramani.compose.MapProperties
 import org.ramani.compose.UiSettings
+import org.ramani.compose.rememberMapViewWithLifecycle
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -27,20 +29,27 @@ fun RecallMap(
     radiusKm: Double = 0.0,
     latLng: LatLng = invalidLatLng()
 ) {
+    val mapView = rememberMapViewWithLifecycle()
     val zone = circle(latLng.toPosition(), radiusKm.kilometers, (8 * ceil(radiusKm)).roundToInt())
+    val bounds = zone.bbox?.let {
+        LatLngBounds.from(it.north, it.east, it.south, it.west)
+    }
+    mapView.getMapAsync {
+        if (bounds == null)
+            return@getMapAsync
+        it.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 48))
+    }
 
     MapLibre(
         styleBuilder = Style.Builder().fromUri("https://tiles.openfreemap.org/styles/liberty"),
         modifier = modifier.fillMaxSize(),
         cameraPosition = CameraPosition(latLng),
-        // TODO: camera bounding and zoom
-        properties = MapProperties(latLngBounds = zone.bbox?.let {
-            LatLngBounds.from(it.north, it.east, it.south, it.west)
-        }),
+        properties = MapProperties(latLngBounds = bounds),
         uiSettings = UiSettings(
             isLogoEnabled = false,
             isAttributionEnabled = false
-        )
+        ),
+        mapView = mapView,
     ) {
         Fill(
             points = zone.coordinates[0].map { it.toLatLng() },
