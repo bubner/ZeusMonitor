@@ -8,6 +8,7 @@ import org.maplibre.android.geometry.LatLng
 import org.maplibre.spatialk.geojson.Position
 
 fun Location.toLatLng() = LatLng(latitude, longitude, altitude)
+fun Location.toPosition() = Position(longitude, latitude, altitude)
 fun LatLng.toPosition() = Position(longitude, latitude, altitude)
 fun Position.toLatLng() = LatLng(latitude, longitude, altitude ?: 0.0)
 

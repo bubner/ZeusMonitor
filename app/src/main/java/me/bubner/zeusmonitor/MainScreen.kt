@@ -133,23 +133,27 @@ fun MainScreen(
             )
             StatusIcon(speedMode, isFetchingWeather)
         }
-        // Lack of recomposition is fine, this will run on initial composition
-        if (!ZeusViewModel.locationUnavailable)
-            LiveMap(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                userLocation = userLocation,
-                setUserLocation = setUserLocation
-            )
-        else
-            CenteredColumn(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .background(Color.LightGray)
-                    .fillMaxSize()
-                    .weight(1f)
-            ) {
-                Text("Location permission denied. Unable to show map.", fontSize = 10.sp)
-            }
+        CenteredColumn(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .weight(1f)
+        ) {
+            // Lack of recomposition is fine, this will run on initial composition
+            if (!ZeusViewModel.locationUnavailable)
+                LiveMap(
+                    userLocation = userLocation,
+                    setUserLocation = setUserLocation,
+                    radiusKm = fetchResult(timer.elapsedTime)
+                )
+            else
+                CenteredColumn(
+                    modifier = Modifier
+                        .background(Color.LightGray)
+                        .fillMaxSize()
+                ) {
+                    Text("Location permission denied. Unable to show map.", fontSize = 10.sp)
+                }
+        }
         Column(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally,
