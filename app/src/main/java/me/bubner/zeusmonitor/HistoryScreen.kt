@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -62,7 +61,7 @@ val sdf = SimpleDateFormat("yyyy-MM-dd hh:mm:ss a z", Locale.getDefault())
 @Composable
 fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) -> Unit) {
     val historyItems by history.collectAsStateWithLifecycle(emptyList())
-    var dialog by remember { mutableStateOf(@Composable {}) }
+    val item = remember { mutableStateOf<HistoryItem?>(null) }
 
     LazyColumn(
         modifier = Modifier
@@ -80,25 +79,21 @@ fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) ->
         items(
             items = historyItems.reversed(),
             key = { it.unixTimeMillis }
-        ) { item ->
-            Entry(
-                item,
-                onClick = {
-                    dialog = @Composable {
-                        ItemDialog(
-                            item,
-                            onDismissRequest = { dialog = {} },
-                            onDelete = {
-                                deleteItem(item)
-                                dialog = {}
-                            }
-                        )
-                    }
-                })
+        ) { i ->
+            Entry(i, onClick = { item.value = i })
         }
     }
 
-    dialog()
+    item.value?.let {
+        ItemDialog(
+            it,
+            onDismissRequest = { item.value = null },
+            onDelete = {
+                deleteItem(it)
+                item.value = null
+            }
+        )
+    }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xffffff)
@@ -191,10 +186,14 @@ fun ItemDialog(
                         else
                             CenteredColumn(
                                 modifier = Modifier
-                                    .background(Color.LightGray)
+                                    .background(Color.LightGray, shape = RoundedCornerShape(16.dp))
                                     .fillMaxSize()
                             ) {
-                                Text("No location information recorded.", fontSize = 10.sp)
+                                Text(
+                                    "No location information recorded.",
+                                    fontSize = 10.sp,
+                                    color = Color.Black
+                                )
                             }
                     }
                 }

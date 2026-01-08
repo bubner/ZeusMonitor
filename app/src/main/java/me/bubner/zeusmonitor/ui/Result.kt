@@ -16,7 +16,6 @@ import me.bubner.zeusmonitor.util.pad
 fun Result(active: Boolean = false, distance: Double = 0.0) {
     val fontSize by animateDpAsState(
         targetValue = if (active) 24.dp else 48.dp,
-        label = "result size"
     )
 
     Text(

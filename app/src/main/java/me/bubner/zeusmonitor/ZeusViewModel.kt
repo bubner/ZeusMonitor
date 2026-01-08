@@ -30,14 +30,15 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.bubner.zeusmonitor.timer.HistoryDataStore
 import me.bubner.zeusmonitor.timer.HistoryItem
+import me.bubner.zeusmonitor.util.invalidLatLng
 import me.bubner.zeusmonitor.util.toLatLng
 import kotlin.math.sqrt
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
-private const val SETTINGS_WEATHER_SYNC_ENABLED = "weatherSyncEnabled"
-private const val SETTINGS_LAST_USER_SPEED_OF_SOUND = "lastUserSpeedOfSound"
-private const val LOCATION_PENDING_PROVIDER = "null"
+const val SETTINGS_WEATHER_SYNC_ENABLED = "weatherSyncEnabled"
+const val SETTINGS_LAST_USER_SPEED_OF_SOUND = "lastUserSpeedOfSound"
+const val LOCATION_PENDING_PROVIDER = "null"
 
 class ZeusViewModel(app: Application) : AndroidViewModel(app) {
     private val client = HttpClient(Android)
@@ -124,7 +125,7 @@ class ZeusViewModel(app: Application) : AndroidViewModel(app) {
                     duration,
                     calculateDistanceKm(duration),
                     _speedOfSound.value,
-                    _userLocation.value.toLatLng()
+                    if (isLocationAvailable) _userLocation.value.toLatLng() else invalidLatLng()
                 )
             )
         }

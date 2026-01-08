@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import me.bubner.zeusmonitor.timer.ElapsedTime
 import me.bubner.zeusmonitor.ui.ControlButton
+import me.bubner.zeusmonitor.ui.FlashingText
 import me.bubner.zeusmonitor.ui.LiveMap
 import me.bubner.zeusmonitor.ui.LiveTimer
 import me.bubner.zeusmonitor.ui.Result
@@ -85,7 +86,7 @@ fun MainScreen(
 ) {
     val timer = rememberSaveable(saver = ElapsedTime.saver) { ElapsedTime() }
     var state by rememberSaveable { mutableStateOf(State.STOPPED) }
-    var displaySpeedOfSoundInterface by rememberSaveable { mutableStateOf(false) }
+    val displaySpeedOfSoundInterface = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(state) {
         when (state) {
@@ -118,20 +119,28 @@ fun MainScreen(
     }
 
     CenteredColumn {
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth()
-                .clickable { displaySpeedOfSoundInterface = true }
-        ) {
-            Text(
-                text = "Speed of sound in your area: ${speedOfSound round 2 pad 2} m/s",
-                textDecoration = TextDecoration.Underline,
-                style = MaterialTheme.typography.bodySmall
-            )
-            StatusIcon(speedMode, isFetchingWeather)
+        CenteredColumn(modifier = Modifier.padding(12.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { displaySpeedOfSoundInterface.value = true }
+            ) {
+                Text(
+                    text = "Speed of sound in your area: ${speedOfSound round 2 pad 2} m/s",
+                    textDecoration = TextDecoration.Underline,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                StatusIcon(speedMode, isFetchingWeather)
+            }
+            if (!isLocationAvailable && !ZeusViewModel.locationUnavailable)
+                FlashingText(
+                    "Waiting for location...",
+                    fontSize = 18.sp,
+                    color = Color.Red,
+                    fontWeight = FontWeight.Bold
+                )
         }
         CenteredColumn(
             modifier = Modifier
@@ -143,15 +152,20 @@ fun MainScreen(
                 LiveMap(
                     userLocation = userLocation,
                     setUserLocation = setUserLocation,
-                    radiusKm = fetchResult(timer.elapsedTime)
+                    radiusKm = fetchResult(timer.elapsedTime),
+                    isStopped = state == State.STOPPED
                 )
             else
                 CenteredColumn(
                     modifier = Modifier
-                        .background(Color.LightGray)
+                        .background(Color.LightGray, shape = RoundedCornerShape(16.dp))
                         .fillMaxSize()
                 ) {
-                    Text("Location permission denied. Unable to show map.", fontSize = 10.sp)
+                    Text(
+                        "Location permission denied. Unable to show map.",
+                        fontSize = 10.sp,
+                        color = Color.Black
+                    )
                 }
         }
         Column(
@@ -182,7 +196,7 @@ fun MainScreen(
                         }
                         ControlButton(
                             active = state == State.RUNNING,
-                            showWarning = !isLocationAvailable
+                            showWarning = !isLocationAvailable && !ZeusViewModel.locationUnavailable
                         ) {
                             state = if (state == State.RUNNING)
                                 State.FINISHING
@@ -195,11 +209,10 @@ fun MainScreen(
         }
     }
 
-    if (displaySpeedOfSoundInterface)
+    if (displaySpeedOfSoundInterface.value)
         SpeedOfSoundEditor(
             onDismissRequest = {
-                @Suppress("AssignedValueIsNeverRead")
-                displaySpeedOfSoundInterface = false
+                displaySpeedOfSoundInterface.value = false
             },
             speedOfSound = speedOfSound,
             speedMode = speedMode,

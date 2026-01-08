@@ -1,8 +1,11 @@
 package me.bubner.zeusmonitor.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import me.bubner.zeusmonitor.util.invalidLatLng
 import me.bubner.zeusmonitor.util.toLatLng
 import me.bubner.zeusmonitor.util.toPosition
@@ -19,18 +22,15 @@ import org.ramani.compose.MapLibre
 import org.ramani.compose.MapProperties
 import org.ramani.compose.UiSettings
 import org.ramani.compose.rememberMapViewWithLifecycle
-import kotlin.math.ceil
-import kotlin.math.roundToInt
+import kotlin.math.max
 
 @Composable
-@Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
 fun RecallMap(
-    modifier: Modifier = Modifier,
     radiusKm: Double = 0.0,
     latLng: LatLng = invalidLatLng()
 ) {
     val mapView = rememberMapViewWithLifecycle()
-    val zone = circle(latLng.toPosition(), radiusKm.kilometers, (8 * ceil(radiusKm)).roundToInt())
+    val zone = circle(latLng.toPosition(), max(0.01, radiusKm).kilometers)
     val bounds = zone.bbox?.let {
         LatLngBounds.from(it.north, it.east, it.south, it.west)
     }
@@ -40,9 +40,12 @@ fun RecallMap(
         it.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 48))
     }
 
+    @Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
     MapLibre(
         styleBuilder = Style.Builder().fromUri("https://tiles.openfreemap.org/styles/liberty"),
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(16.dp)),
         cameraPosition = CameraPosition(latLng),
         properties = MapProperties(latLngBounds = bounds),
         uiSettings = UiSettings(

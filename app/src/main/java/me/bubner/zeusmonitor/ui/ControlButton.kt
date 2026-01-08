@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +34,6 @@ fun ControlButton(active: Boolean = false, showWarning: Boolean = false, onClick
     val buttonColour by animateColorAsState(
         targetValue = rawButtonColour.copy(alpha = if (showWarning) 0.5f else 1.0f),
         animationSpec = tween(durationMillis = 250),
-        label = "button color"
     )
 
     Button(
@@ -60,7 +60,12 @@ fun ControlButton(active: Boolean = false, showWarning: Boolean = false, onClick
                 }
             }
             if (showWarning)
-                Text("Location not ready.", fontSize = 10.sp, color = Color.Red)
+                FlashingText(
+                    "Waiting for location...",
+                    fontSize = 10.sp,
+                    color = Color.Red,
+                    fontWeight = FontWeight.Bold
+                )
         }
     }
 }

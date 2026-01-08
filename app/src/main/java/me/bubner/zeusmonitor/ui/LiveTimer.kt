@@ -39,7 +39,6 @@ import kotlin.time.DurationUnit
 fun LiveTimer(active: Boolean = false, timer: ElapsedTime = ElapsedTime()) {
     val fontSize by animateDpAsState(
         targetValue = if (active) 48.dp else 24.dp,
-        label = "timer size"
     )
 
     var size by remember { mutableStateOf(IntSize.Zero) }
@@ -52,7 +51,6 @@ fun LiveTimer(active: Boolean = false, timer: ElapsedTime = ElapsedTime()) {
                 animation = tween(durationMillis = 1400, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
-            label = "sweep animation parameter"
         )
         anim
     } else {

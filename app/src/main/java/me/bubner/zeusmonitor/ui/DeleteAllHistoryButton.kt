@@ -11,28 +11,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 
-@Suppress("AssignedValueIsNeverRead")
 @Preview
 @Composable
 fun DeleteAllHistoryButton(onClick: () -> Unit = {}) {
-    var confirmDialogOpen by remember { mutableStateOf(false) }
+    val confirmDialogOpen = remember { mutableStateOf(false) }
 
-    if (confirmDialogOpen) {
+    if (confirmDialogOpen.value) {
         AlertDialog(
             icon = { Icon(imageVector = Icons.Default.Warning, contentDescription = "Warning") },
             title = { Text("Delete all?") },
             text = { Text("This will delete all previous Zeus Monitor captures. Are you sure?") },
-            onDismissRequest = { confirmDialogOpen = false },
+            onDismissRequest = { confirmDialogOpen.value = false },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        confirmDialogOpen = false
+                        confirmDialogOpen.value = false
                         onClick()
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -45,7 +42,7 @@ fun DeleteAllHistoryButton(onClick: () -> Unit = {}) {
             },
             dismissButton = {
                 TextButton(
-                    onClick = { confirmDialogOpen = false },
+                    onClick = { confirmDialogOpen.value = false },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.tertiary,
                         contentColor = MaterialTheme.colorScheme.onTertiary
@@ -58,7 +55,7 @@ fun DeleteAllHistoryButton(onClick: () -> Unit = {}) {
     }
 
     FloatingActionButton(
-        onClick = { confirmDialogOpen = true },
+        onClick = { confirmDialogOpen.value = true },
         containerColor = MaterialTheme.colorScheme.error,
         contentColor = MaterialTheme.colorScheme.onError
     ) {

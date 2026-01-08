@@ -1,6 +1,7 @@
 package me.bubner.zeusmonitor.timer
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStore
 import kotlinx.coroutines.flow.map
 
@@ -8,6 +9,7 @@ class HistoryDataStore(private val context: Context) {
     val Context.dataStore by dataStore(
         fileName = "history.json",
         serializer = HistorySerializer,
+        corruptionHandler = ReplaceFileCorruptionHandler { History(emptyList()) }
     )
 
     fun historyFlow() = context.dataStore.data.map { it.history }
