@@ -34,12 +34,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import me.bubner.zeusmonitor.timer.HistoryItem
 import me.bubner.zeusmonitor.ui.RecallMap
 import me.bubner.zeusmonitor.util.CenteredColumn
@@ -58,8 +61,12 @@ import kotlin.time.Duration.Companion.seconds
 @SuppressLint("ConstantLocale")
 val sdf = SimpleDateFormat("yyyy-MM-dd hh:mm:ss a z", Locale.getDefault())
 
+@Preview
 @Composable
-fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) -> Unit) {
+fun HistoryScreen(
+    history: Flow<List<HistoryItem>> = flowOf(emptyList()),
+    deleteItem: (HistoryItem) -> Unit = {}
+) {
     val historyItems by history.collectAsStateWithLifecycle(emptyList())
     val item = remember { mutableStateOf<HistoryItem?>(null) }
 
@@ -69,11 +76,25 @@ fun HistoryScreen(history: Flow<List<HistoryItem>>, deleteItem: (HistoryItem) ->
             .background(color = MaterialTheme.colorScheme.surface)
     ) {
         item {
-            Text(
-                "History",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(12.dp)
-            )
+            Row {
+                Text(
+                    "History",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(12.dp)
+                )
+                val version = LocalContext.current.let {
+                    it.packageManager.getPackageInfo(it.packageName, 0).versionName
+                }
+                Text(
+                    "Zeus Monitor v$version",
+                    textAlign = TextAlign.End,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                    fontSize = 10.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                )
+            }
             HorizontalDivider()
         }
         items(
