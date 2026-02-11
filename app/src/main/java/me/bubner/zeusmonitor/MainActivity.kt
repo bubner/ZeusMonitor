@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
@@ -35,6 +38,8 @@ import me.bubner.zeusmonitor.util.isPermissionGranted
  * @author Lucas Bubner, 2025
  */
 class MainActivity : ComponentActivity() {
+    private var locationRecv by mutableIntStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -50,7 +55,7 @@ class MainActivity : ComponentActivity() {
                 0
             )
         }
-        setContent { Main() }
+        setContent { Main(locationRecv = locationRecv) }
     }
 
     override fun onRequestPermissionsResult(
@@ -64,12 +69,13 @@ class MainActivity : ComponentActivity() {
             return
         ZeusViewModel.locationUnavailable =
             grantResults.all { it == PackageManager.PERMISSION_DENIED }
+        locationRecv++
     }
 }
 
 @Preview
 @Composable
-fun Main(viewModel: ZeusViewModel = viewModel()) {
+fun Main(locationRecv: Int = 0, viewModel: ZeusViewModel = viewModel()) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -79,6 +85,14 @@ fun Main(viewModel: ZeusViewModel = viewModel()) {
     val lastKnownUserSpeedOfSound by viewModel.lastKnownUserSpeedOfSound.collectAsState()
     val userLocation by viewModel.userLocation.collectAsState()
     val isFetchingWeather by viewModel.isFetchingWeather.collectAsState()
+
+    LaunchedEffect(locationRecv) {
+        // Refresh the page at the nav level when the user has given new permission location data,
+        // since the LibreMap that gathers this information may have wrongly assumed location information
+        // is not possible to get, leaving the app stuck waiting for an update that will never happen
+        if (locationRecv > 0)
+            navController.navigate(Tab.Monitor.name)
+    }
 
     // We prefer to use our own colours rather than the user's (yellow/blue)
     ZeusMonitorTheme(dynamicColor = false) {

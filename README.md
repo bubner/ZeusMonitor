@@ -1,4 +1,4 @@
-# <img align="left" src="https://github.com/bubner/ZeusMonitor/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" width="140" /></a> Zeus Monitor
+# <img align="left" src="https://github.com/bubner/ZeusMonitor/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" width="140" /> Zeus Monitor
 
 An Android app built with Jetpack Compose to calculate the distance between you and a lightning
 strike by using the measured delay between the lightning flash and thunder.
